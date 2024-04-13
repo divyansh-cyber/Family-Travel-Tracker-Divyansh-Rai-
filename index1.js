@@ -1,8 +1,10 @@
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
+
 const app = express();
 const port = 3000;
+
 const db = new pg.Client({
   user: "postgres",
   host: "localhost",
@@ -11,18 +13,19 @@ const db = new pg.Client({
   port: 5432,
 });
 db.connect();
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
- 
+
 let currentUserId = 1; //first user assuming that the first user id in the users table is 1.
 let users = [
-  { id: 1, name: "Assistant", color: "teal" } 
+  // { id: 1, name: "Assistant", color: "teal" } - user object structure
 ];
-let error = ""; 
+let error = ""; //declare error variable
+
 async function checkVisisted() {
   let usersTable = await db.query("SELECT * FROM users");
   users = usersTable.rows;
-  //Join tables so you can have access to country_code and users.id
   const result = await db.query(
   `SELECT countries.country_code FROM visited_countries
   JOIN users ON visited_countries.user_id = users.id
@@ -36,18 +39,20 @@ async function checkVisisted() {
   });
   return countries;
 }
-async function getCurrentUser() {
+async function getCurrentUserColor() {
   const result = await db.query("SELECT * FROM users");
-users = result.rows;
-  return users.find((user) => user.id == currentUserId);
+  users = result.rows;
+  const currentUser = users.find((user) => user.id == currentUserId);
+
+  // If currentUser exists, return its color; otherwise, return null
+  return currentUser ? currentUser.color : null;
 }
 app.get("/", async (req, res) => {
   const countries = await checkVisisted();
   console.log("Countries per user: ",countries);
   console.log("Users: ", users);
-  const currentuser=await getCurrentUser();
   //get color based on current user.
-  const userColor = currentuser.color;
+  const userColor = await getCurrentUserColor();
   console.log("User color: ", userColor);
   res.render("index.ejs", {
     countries: countries,
@@ -59,10 +64,10 @@ app.get("/", async (req, res) => {
 });
 app.post("/add", async (req, res) => {
   const input = req.body["country"];
- 
+
   try {
     const result = await db.query(
-      "SELECT id FROM countries WHERE LOWER(country_name) LIKE '%' || $1 || '%';",
+      "SELECT country_code FROM countries WHERE LOWER(country_code) LIKE '%' || $1 || '%';",
       [input.toLowerCase()]
     );
     console.log("Selected contry id: ", result.rows);
@@ -92,7 +97,7 @@ app.post("/add", async (req, res) => {
   }
 });
 app.post("/user", async (req, res) => { 
-
+  //check if req.body.add is truthy 
   if (req.body.add) {
     res.render("new.ejs");    
   } else{
@@ -101,9 +106,10 @@ app.post("/user", async (req, res) => {
     console.log("/user: ", currentUserId);
   }
 });
- 
-app.post("/new", async (req, res) => {
 
+app.post("/new", async (req, res) => {
+  //Hint: The RETURNING keyword can return the data that was inserted.
+  //https://www.postgresql.org/docs/current/dml-returning.html
   console.log("newUser: ",req.body);
   const user = req.body.name;
   const color = req.body.color;
@@ -119,9 +125,9 @@ app.post("/new", async (req, res) => {
     error2 = "User already exists";
     res.render("new.ejs", {error2: error2})
   }
- 
+
 });
- 
+
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
