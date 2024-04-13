@@ -4,20 +4,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Family Travel Tracker</title>
+  <title>Travel Tracker</title>
   <link rel="stylesheet" href="./styles/main.css">
 </head>
 
 <body>
-  <header>
-    <div class="w3-container">
-      <h1 class="w3-center w3-animate-top">FAMILY TRAVEL TRACKER!</h1>
-    </div>
-  </header>
+  <h1>Family Travel Tracker!!</h1>
   <form class="tab-view tab-view-height-auto" action="/user" method="post">
     <% users.forEach(function(user) { %>
-      <input type="submit" name="add" value="<%= user.id %>" id="<%= user.id %>"
-      <label for=<%= user.id %> style="background-color: <%=user.color %>;" <%= user.name %> </label>
+      <input type="submit" name="user" value="<%= user.id %>" id="<%= user.id %>">
+      <label for="<%= user.id %>" style="background-color: <%= user.color %>;">
+        <%= user.name %>
+      </label>
       <% }); %>
 
         <input type="submit" name="add" value="new" id="tab">
@@ -27,7 +25,7 @@
 
   <form action="/add" method="post">
     <input type="text" name="country" autofocus placeholder="<%= locals.error ? error :  'Enter country name'%>">
-    <button type="submit" <% /* eslint-disable css-propertyvalueexpected */ %> style='background-color: <%= color %>;'>ADD</button>
+    <button type="submit" style="background-color: <%= color %>;">Add</button>
   </form>
 
   <section class="ag-canvas">
